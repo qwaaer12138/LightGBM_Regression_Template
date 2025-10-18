@@ -1,7 +1,11 @@
 from pathlib import Path
 
+import pytest
+
+pd = pytest.importorskip("pandas")
+pytest.importorskip("lightgbm")
+
 import lightgbm as lgb
-import pandas as pd
 
 from lightgbm_regression import train_regression_model
 
@@ -10,11 +14,13 @@ def test_train_regression_model_on_boston_dataset():
     data_path = Path(__file__).resolve().parent / "data" / "boston_housing.csv"
     df = pd.read_csv(data_path)
 
+    seed = 2025
+
     result = train_regression_model(
         df,
         target_column="medv",
         n_splits=3,
-        random_state=0,
+        random_state=seed,
         lgbm_params={
             "objective": "regression",
             "metric": "mae",
@@ -24,7 +30,7 @@ def test_train_regression_model_on_boston_dataset():
             "n_estimators": 50,
             "subsample": 0.8,
             "colsample_bytree": 0.8,
-            "random_state": 0,
+            "random_state": seed,
         },
         early_stopping_rounds=10,
     )
