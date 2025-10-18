@@ -3,6 +3,8 @@
 This repository provides a light-weight template for training a LightGBM regressor
 with k-fold cross-validation and running inference on a held-out test set.
 
+[查看中文版 README](./README_zh-CN.md)。
+
 ## Project Structure
 
 ```
