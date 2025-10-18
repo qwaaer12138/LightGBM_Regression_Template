@@ -53,3 +53,27 @@ The script prints fold-by-fold MAE metrics to the console, persists the same log
 file under `logs/`, stores a JSON summary of cross-validation metrics under the
 specified `output` directory, and writes test-set predictions to
 `outputs/predictions.csv`.
+
+## Example: Run on the UCI Boston Housing dataset
+
+To try the pipeline end-to-end on a permissive public dataset, use the helper script in
+`examples/`. It downloads the [Boston Housing](https://raw.githubusercontent.com/jbrownlee/Datasets/master/housing.csv)
+dataset from the UCI Machine Learning Repository (public domain), creates a reproducible
+train/test split, and executes the LightGBM pipeline.
+
+```bash
+python examples/run_on_public_dataset.py
+```
+
+The script prints progress to the console and writes artifacts to `examples/data/` and
+`examples/outputs/boston_housing/`:
+
+- `examples/data/` &mdash; cached raw dataset, train split, test split, and hold-out targets.
+- `examples/outputs/boston_housing/cv_results.json` &mdash; cross-validation MAE summary from the pipeline.
+- `examples/outputs/boston_housing/predictions.csv` &mdash; pipeline predictions for the hold-out set.
+- `examples/outputs/boston_housing/holdout_metrics.json` &mdash; MAE measured against the withheld targets.
+- `examples/outputs/boston_housing/holdout_predictions.csv` &mdash; combined table with target and prediction.
+- `examples/outputs/boston_housing/logs/` &mdash; timestamped training logs.
+
+You can re-run the script with `--force-download` to refresh the dataset or with
+`--output-dir`/`--data-dir` to customize artifact locations.
