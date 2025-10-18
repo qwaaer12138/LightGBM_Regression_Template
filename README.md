@@ -11,9 +11,12 @@ with k-fold cross-validation and running inference on a held-out test set.
 ├── scripts/
 │   └── run_pipeline.py   # CLI entry point for the full pipeline
 ├── src/
-│   ├── data_utils.py     # Dataset loading and preprocessing helpers
-│   ├── infer.py          # Inference helpers
-│   └── train.py          # Cross-validation training loop
+│   └── lightgbm_regression/
+│       ├── __init__.py   # Public API surface
+│       ├── _typing.py    # Shared type aliases
+│       ├── data_utils.py # Dataset loading and preprocessing helpers
+│       ├── infer.py      # Inference helpers
+│       └── train.py      # Cross-validation training loop
 ├── outputs/              # Prediction artifacts (created automatically)
 ├── logs/                 # Training logs (created automatically)
 └── README.md
@@ -55,6 +58,44 @@ The script prints fold-by-fold MAE metrics to the console, persists the same log
 file under `logs/`, stores a JSON summary of cross-validation metrics under the
 specified `output` directory, and writes test-set predictions to
 `outputs/predictions.csv`.
+
+### Use as a Python library
+
+The toolkit can also be imported from Python code (scripts, notebooks, other
+packages). The `train_regression_model` helper accepts either in-memory pandas
+DataFrames or CSV paths and returns a `TrainingResult` object that contains the
+best-scoring model as well as detailed fold metrics.
+
+```python
+from lightgbm_regression import (
+    TrainingConfig,
+    generate_predictions,
+    train_regression_model,
+)
+import pandas as pd
+
+train_df = pd.read_csv("/path/to/train.csv")
+test_df = pd.read_csv("/path/to/test.csv")
+
+result = train_regression_model(
+    train_data=train_df,
+    target_column="target",
+    test_data=test_df,
+    drop_columns=["id"],
+    config=TrainingConfig(n_splits=3, random_state=7),
+    lgbm_params={"learning_rate": 0.1, "num_leaves": 63},
+)
+
+predictions = generate_predictions(
+    result.best_model,
+    test_df,
+    feature_columns=result.feature_columns,
+)
+```
+
+If you already have CSV files on disk, you can pass their paths directly to
+`train_regression_model(train_data="train.csv", test_data="test.csv", ...)`
+without loading them into memory yourself.
 
 ## Example: Run on the UCI Boston Housing dataset
 

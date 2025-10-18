@@ -2,13 +2,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from pathlib import Path
-from typing import List, Tuple
+from typing import List, Sequence, Tuple
 
 import pandas as pd
 
+from ._typing import PathLike
 
-@dataclass
+
+@dataclass(slots=True)
 class DatasetBundle:
     """Container for train/test datasets and metadata."""
 
@@ -19,30 +20,12 @@ class DatasetBundle:
 
 
 def load_datasets(
-    train_path: str | Path,
-    test_path: str | Path,
+    train_path: PathLike,
+    test_path: PathLike,
     target_column: str,
-    drop_columns: List[str] | None = None,
+    drop_columns: Sequence[str] | None = None,
 ) -> DatasetBundle:
-    """Load training and test data from disk.
-
-    Parameters
-    ----------
-    train_path: str or Path
-        File path to the training dataset containing the target column.
-    test_path: str or Path
-        File path to the test dataset without the target column.
-    target_column: str
-        Name of the target column in the training dataset.
-    drop_columns: List[str], optional
-        Additional columns to drop from both datasets (e.g., identifiers).
-
-    Returns
-    -------
-    DatasetBundle
-        Dataclass that includes training and test dataframes with aligned
-        feature columns and the target column name.
-    """
+    """Load training and test data from disk."""
 
     train_df = pd.read_csv(train_path)
     test_df = pd.read_csv(test_path)
@@ -52,7 +35,7 @@ def load_datasets(
             f"Target column '{target_column}' not found in training data."
         )
 
-    drop_columns = drop_columns or []
+    drop_columns = list(drop_columns or [])
 
     for column in drop_columns:
         if column not in train_df.columns:
@@ -64,7 +47,6 @@ def load_datasets(
                 f"Drop column '{column}' not found in test data columns."
             )
 
-    # Ensure columns are sorted consistently after dropping identifiers
     train_features = train_df.drop(columns=[target_column] + drop_columns)
     test_features = test_df.drop(columns=drop_columns)
 
@@ -75,7 +57,6 @@ def load_datasets(
             + ", ".join(sorted(missing_in_test))
         )
 
-    # Align column order
     test_features = test_features[train_features.columns]
 
     return DatasetBundle(
