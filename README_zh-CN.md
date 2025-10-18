@@ -8,9 +8,12 @@
 ├── scripts/
 │   └── run_pipeline.py   # 完整流程的命令行入口
 ├── src/
-│   ├── data_utils.py     # 数据集加载与预处理辅助函数
-│   ├── infer.py          # 推理相关辅助函数
-│   └── train.py          # 交叉验证训练循环
+│   └── lightgbm_regression/
+│       ├── __init__.py   # 公共 API
+│       ├── _typing.py    # 共享类型别名
+│       ├── data_utils.py # 数据集加载与预处理辅助函数
+│       ├── infer.py      # 推理相关辅助函数
+│       └── train.py      # 交叉验证训练循环
 ├── outputs/              # 预测产物（自动创建）
 ├── logs/                 # 训练日志（自动创建）
 └── README.md
@@ -47,6 +50,43 @@ python scripts/run_pipeline.py \
 - `--log-level`：日志输出等级（默认：`INFO`）。
 
 脚本会在控制台打印每一折的 MAE 指标，并同步保存日志到 `logs/` 目录下的文件中；同时在指定的 `output` 目录下写入交叉验证指标汇总 JSON，以及将测试集预测结果写入 `outputs/predictions.csv`。
+
+### 作为 Python 库调用
+
+该工具集同样可以在 Python 代码（脚本、notebook 或其他包）中直接导入使用。
+`train_regression_model` 支持传入内存中的 pandas DataFrame 或者 CSV 文件路径，
+并返回包含最佳模型与每折指标的 `TrainingResult` 对象。
+
+```python
+from lightgbm_regression import (
+    TrainingConfig,
+    generate_predictions,
+    train_regression_model,
+)
+import pandas as pd
+
+train_df = pd.read_csv("/path/to/train.csv")
+test_df = pd.read_csv("/path/to/test.csv")
+
+result = train_regression_model(
+    train_data=train_df,
+    target_column="target",
+    test_data=test_df,
+    drop_columns=["id"],
+    config=TrainingConfig(n_splits=3, random_state=7),
+    lgbm_params={"learning_rate": 0.1, "num_leaves": 63},
+)
+
+predictions = generate_predictions(
+    result.best_model,
+    test_df,
+    feature_columns=result.feature_columns,
+)
+```
+
+如果数据已经以 CSV 形式存放在磁盘上，也可以直接传入文件路径，
+例如 `train_regression_model(train_data="train.csv", test_data="test.csv", ...)`
+而无需手动加载到内存。
 
 ## 示例：在 UCI Boston Housing 数据集上运行
 

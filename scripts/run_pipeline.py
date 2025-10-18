@@ -4,13 +4,24 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict
 
-from src.data_utils import DatasetBundle, load_datasets, split_features_and_target
-from src.infer import generate_predictions
-from src.train import TrainingConfig, train_with_cv
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_ROOT = REPO_ROOT / "src"
+if str(SRC_ROOT) not in sys.path:
+    sys.path.insert(0, str(SRC_ROOT))
+
+from lightgbm_regression import (
+    DatasetBundle,
+    TrainingConfig,
+    generate_predictions,
+    load_datasets,
+    split_features_and_target,
+    train_with_cv,
+)
 
 
 def configure_logging(log_dir: Path, log_level: str = "INFO") -> Path:

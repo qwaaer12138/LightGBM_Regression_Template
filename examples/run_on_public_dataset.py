@@ -155,10 +155,10 @@ def run_pipeline(
 
     print("Running training pipeline:\n  " + " ".join(cmd))
     env = os.environ.copy()
-    pythonpath = str(REPO_ROOT)
+    pythonpath_entries = [str(REPO_ROOT / "src"), str(REPO_ROOT)]
     if env.get("PYTHONPATH"):
-        pythonpath = pythonpath + os.pathsep + env["PYTHONPATH"]
-    env["PYTHONPATH"] = pythonpath
+        pythonpath_entries.append(env["PYTHONPATH"])
+    env["PYTHONPATH"] = os.pathsep.join(pythonpath_entries)
     subprocess.run(cmd, check=True, env=env, cwd=REPO_ROOT)
 
 

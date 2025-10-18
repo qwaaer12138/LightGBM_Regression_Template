@@ -1,4 +1,4 @@
-"""Model inference utilities."""
+"""Model inference helpers for the LightGBM regression toolkit."""
 from __future__ import annotations
 
 from pathlib import Path
@@ -6,12 +6,14 @@ from typing import Iterable
 
 import pandas as pd
 
+from ._typing import PathLike
+
 
 def generate_predictions(
     model,
     data: pd.DataFrame,
     feature_columns: Iterable[str],
-    output_path: str | Path | None = None,
+    output_path: PathLike | None = None,
     prediction_column: str = "prediction",
 ) -> pd.DataFrame:
     """Generate predictions and optionally persist them to disk."""
@@ -29,8 +31,8 @@ def generate_predictions(
     result_df[prediction_column] = predictions
 
     if output_path is not None:
-        output_path = Path(output_path)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        result_df[[prediction_column]].to_csv(output_path, index=False)
+        path = Path(output_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        result_df[[prediction_column]].to_csv(path, index=False)
 
     return result_df
