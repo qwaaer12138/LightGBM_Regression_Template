@@ -88,6 +88,49 @@ predictions = generate_predictions(
 例如 `train_regression_model(train_data="train.csv", test_data="test.csv", ...)`
 而无需手动加载到内存。
 
+#### 在 Jupyter Notebook 中调用
+
+如果希望在外部 `ipynb` 笔记本中重用训练/预测逻辑，可以先把仓库根目录加入 `sys.path`，
+然后导入 `lightgbm_regression` 包暴露的 API。以下示例展示了如何在 notebook 中加载
+项目自带的 Boston Housing 数据集，执行训练并生成预测：
+
+```python
+from pathlib import Path
+import sys
+import pandas as pd
+
+repo_root = Path("/path/to/LightGBM_Regression_Template")
+sys.path.append(str(repo_root / "src"))
+
+from lightgbm_regression import (
+    TrainingConfig,
+    train_regression_model,
+    generate_predictions,
+)
+
+train_df = pd.read_csv(repo_root / "tests" / "data" / "boston_housing_train.csv")
+test_df = pd.read_csv(repo_root / "tests" / "data" / "boston_housing_test.csv")
+
+result = train_regression_model(
+    train_data=train_df,
+    target_column="MEDV",
+    test_data=test_df,
+    drop_columns=["CHAS"],
+    config=TrainingConfig(n_splits=5, random_state=42),
+    lgbm_params={"learning_rate": 0.05, "num_leaves": 31},
+)
+
+pred_df = generate_predictions(
+    model=result.best_model,
+    data=test_df,
+    feature_columns=result.feature_columns,
+)
+pred_df.head()
+```
+
+如果更偏向使用磁盘上的 CSV 文件，可以直接把 `train_data` 与 `test_data` 参数替换为相应的路径，
+或借助 `load_datasets` / `split_features_and_target` 等辅助函数来完成读取与特征列对齐。
+
 ## 示例：在 UCI Boston Housing 数据集上运行
 
 要在公开数据集上体验完整流程，可使用 `examples/` 目录下的辅助脚本。该脚本会下载 [Boston Housing](https://raw.githubusercontent.com/jbrownlee/Datasets/master/housing.csv) 数据集（公共领域），构建可复现的训练/测试划分，并执行 LightGBM 流程。
